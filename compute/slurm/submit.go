@@ -33,6 +33,7 @@ var ExcludeNodes = "--exclude="
 var NewUserEnv = "--get-user-env=10L"
 
 func SubmitJob(scriptFile string) (string, error) {
+
 	// Submit Job
 	out, err := process.Execute(Slurm.SubmitCmd, ExcludeNodes, NewUserEnv, scriptFile)
 	if err != nil {

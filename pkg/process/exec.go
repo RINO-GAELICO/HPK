@@ -46,6 +46,8 @@ func ExecuteInDir(dir string, command string, arguments ...string) (out []byte, 
 
 	cmd.Env = os.Environ()
 	cmd.Env = append(cmd.Env, GoEnviron...)
+	// print the command
+	fmt.Println("Running command: ", cmd.String())
 
 	buffer := new(bytes.Buffer)
 	cmd.Stdout = buffer

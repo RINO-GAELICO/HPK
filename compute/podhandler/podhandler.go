@@ -15,6 +15,7 @@
 package podhandler
 
 import (
+	"io/ioutil"
 	"bytes"
 	"context"
 	"fmt"
@@ -25,8 +26,6 @@ import (
 
 	"github.com/carv-ics-forth/hpk/compute"
 	"github.com/carv-ics-forth/hpk/compute/endpoint"
-	"github.com/carv-ics-forth/hpk/compute/image"
-	"github.com/carv-ics-forth/hpk/compute/runtime"
 	"github.com/carv-ics-forth/hpk/compute/slurm"
 	"github.com/carv-ics-forth/hpk/pkg/filenotify"
 	"github.com/carv-ics-forth/hpk/pkg/resources"
@@ -39,6 +38,7 @@ import (
 
 const (
 	CustomSlurmFlags = "slurm.hpk.io/flags"
+	DefaultSlurmType = "slurm.hpk.io/type"
 )
 
 // LoadPodFromKey waits LoadPodFromFile with filePath discovery.
@@ -73,6 +73,7 @@ func LoadPodFromFile(filePath string) (*corev1.Pod, error) {
 }
 
 func SavePodToFile(_ context.Context, pod *corev1.Pod) error {
+	
 	if pod == nil {
 		return errors.Errorf("empty pod")
 	}
@@ -161,29 +162,10 @@ remove_pod:
 	 *---------------------------------------------------*/
 
 	if err := os.RemoveAll(podDir.String()); err != nil {
-		// if trying to remove directory from the host fails, try to delete it using a fakeroot containera.
+		// if trying to remove directory from the host fails, try to delete it using a fakeroot container
 		if errors.Is(err, fs.ErrPermission) {
-			compute.DefaultLogger.Info(" * Failed to remove directory from host. Try using fakeroot container.",
-				"err", err,
-			)
-
-			// try to delete directory using the fakeroot from pause container.
-			out, err := runtime.DefaultPauseImage.FakerootExec(
-				[]string{"--mount", "type=bind,src=" + podDir.String() + ",dst=/pod"}, // mount the pod directory in singularity
-				[]string{"rm", "-rf", "/pod/*"},                                       // remove the pod directory using fakeroot
-			)
-
-			compute.DefaultLogger.Info(" * Result",
-				"out", out,
-				"debug", []string{"-B", podDir.String() + ":" + podDir.String() + ":rw"},
-			)
-
-			if err != nil {
-				compute.SystemPanic(err, "failed to forcible remove pod directory '%s'", podDir)
-			}
-		} else {
 			compute.SystemPanic(err, "failed to remove pod directory '%s'", podDir)
-		}
+		} 
 	}
 
 	logger.Info(" * Pod directory is removed")
@@ -344,24 +326,66 @@ func CreatePod(ctx context.Context, pod *corev1.Pod, watcher filenotify.FileWatc
 	}
 
 	/*---------------------------------------------------
-	 * Prepare Image for Pause Container
-	 *---------------------------------------------------*/
-	pauseImage, err := image.Pull(compute.HPK.ImageDir(), image.Docker, image.PauseImage)
-	if err != nil {
-		compute.SystemPanic(err, "ImagePull error. Image:%s", image.PauseImage)
-	}
+	 * Prepare the Slurm Configuration
+	 *------------- ---------------------------*/
+
+	// Define the path where the config.json will be saved
+	configFilePath := "config.json"
+
+
 
 	/*---------------------------------------------------
 	 * Prepare Fields for Sbatch Templates
 	 *---------------------------------------------------*/
-	var customFlags []string
-	if flags, hasFlags := h.Pod.GetAnnotations()[CustomSlurmFlags]; hasFlags {
-		customFlags = strings.Split(flags, " ")
+	var totalFlags []string
+		//  default to the slurm type as a base
+		//  adding to customFlags
+	var config map[string]string
+
+
+	if defaultFlag, hasDefault := h.Pod.GetAnnotations()[DefaultSlurmType];  hasDefault{
+		
+		// Step 1: Open the config.json file
+		file, err := os.Open(configFilePath)
+
+		if err != nil {
+			compute.SystemPanic(err, "Error opening config.json for Default Slurm Type: config.json")
+			return
+		}
+		defer file.Close()
+
+		// Step 2: Unmarshal the JSON content into a map
+		byteValue, err := ioutil.ReadAll(file)
+		if err != nil {
+			compute.SystemPanic(err, "Error reading config.json for Default Slurm Type: config.json")
+			return
+		}
+		err = json.Unmarshal(byteValue, &config)
+		if err != nil {
+			compute.SystemPanic(err, "Error parsing config.json for Default Slurm Type: config.json")
+			return
+		}
+
+		// Step 3: Access the proper setting using the defaultFlag
+		if setting, exists := config[defaultFlag]; exists {
+			logger.Info("Setting for " + defaultFlag + ": " + setting)
+			// You can append this setting to totalFlags or use it otherwise
+			totalFlags = append(totalFlags, setting)
+		} else {
+			// Log the absence of a setting with logger.Info
+			logger.Info("No setting found for " + defaultFlag)
+		}
+	}
+
+	logger.Info(" * Default Slurm Type has been set", "defaultFlag", totalFlags)
+
+	if customflags, hasFlags := h.Pod.GetAnnotations()[CustomSlurmFlags]; hasFlags {
+		totalFlags = append(totalFlags, strings.Split(customflags, " ")...)
 	}
 
 	scriptTemplate, err := ParseTemplate(HostScriptTemplate)
 	if err != nil {
-		compute.SystemPanic(err, "sbatch template error")
+		compute.SystemPanic(err, "sbatch template error", "template", HostScriptTemplate)
 	}
 
 	scriptFileContent := bytes.Buffer{}
@@ -390,7 +414,6 @@ func CreatePod(ctx context.Context, pod *corev1.Pod, watcher filenotify.FileWatc
 
 	if err := scriptTemplate.Execute(&scriptFileContent, JobFields{
 		Pod:                h.podKey,
-		PauseImageFilePath: pauseImage.Filepath,
 		HostEnv:            compute.Environment,
 		VirtualEnv: compute.VirtualEnvironment{
 			PodDirectory:        h.podDirectory.String(),
@@ -404,7 +427,7 @@ func CreatePod(ctx context.Context, pod *corev1.Pod, watcher filenotify.FileWatc
 		InitContainers:  initContainers,
 		Containers:      containers,
 		ResourceRequest: resources.ResourceListToStruct(resourceRequest),
-		CustomFlags:     customFlags,
+		CustomFlags:     totalFlags,
 	}); err != nil {
 		/*-- since both the template and fields are internal to the code, the evaluation should always succeed	--*/
 		compute.SystemPanic(err, "failed to evaluate sbatch template")
@@ -421,6 +444,8 @@ func CreatePod(ctx context.Context, pod *corev1.Pod, watcher filenotify.FileWatc
 	/*---------------------------------------------------
 	 * Submit job to Slurm, and store the JobID
 	 *---------------------------------------------------*/
+	logger.Info("Script file path: ", "scriptFilePath", scriptFilePath)
+
 	jobID, err := slurm.SubmitJob(scriptFilePath)
 	if err != nil {
 		compute.SystemPanic(err, "failed to submit job")

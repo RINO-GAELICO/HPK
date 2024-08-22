@@ -24,7 +24,7 @@ func setup(tmpDir string) {
 	compute.Environment = compute.HostEnvironment{
 		KubeMasterHost:    "",
 		ContainerRegistry: "",
-		ApptainerBin:      "singularity",
+		PodmanBin:      "podman-hpc",
 		EnableCgroupV2:    false,
 		WorkingDirectory:  tmpDir,
 		KubeDNS:           "",

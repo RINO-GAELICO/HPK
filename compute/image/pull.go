@@ -15,39 +15,77 @@
 package image
 
 import (
-	"os"
 	"strings"
-
+	"fmt"
 	"github.com/carv-ics-forth/hpk/compute"
 	"github.com/carv-ics-forth/hpk/pkg/process"
 	"github.com/pkg/errors"
 )
 
 func Pull(imageDir string, transport Transport, imageName string) (*Image, error) {
-	// Remove the digest form the image, because Singularity fails with
+	// Remove the digest from the image, because Singularity fails with
 	// "Docker references with both a tag and digest are currently not supported".
 	imageName = strings.Split(imageName, "@")[0]
 
-	img := &Image{
-		Filepath: imageDir + ParseImageName(imageName),
+	/*
+	
+	Keep in mind the ImagePullpolicy implementation for the future 
+
+	*/
+
+	res, err := process.Execute(compute.Environment.PodmanBin, "images", fmt.Sprintf("--format=\"{{.Names}}|{{.IsReadOnly}}\""))
+	if err != nil {
+		return nil, errors.Wrapf(err, "Failed to check the image")
 	}
 
-	// check if image exists
-	file, err := os.Stat(img.Filepath)
-	if err == nil {
-		if file.Mode().IsRegular() {
-			return img, nil
+
+	cleanOutput := strings.Trim(string(res), "{}\" \n")
+
+	// TODO: 
+	// Add the tag if there is no tag appending the latest tag
+
+	// Split the output into lines
+	lines := strings.Split(cleanOutput, "\n")
+
+	// Check every line to see if the image already exists
+	for _, line := range lines {
+		
+		// Trim extra quotes and spaces
+		line = strings.Trim(line, "\" ")
+
+		// Split by the '|' character
+		parts := strings.Split(line, "|")
+		if len(parts) != 2 {
+			continue
 		}
 
-		return nil, errors.Errorf("imagePath '%s' is not a regular fie", img.Filepath)
+		// Extract image name and condition
+		imagePart := strings.Trim(parts[0], "[] ")
+		// remove the tag at the end of the image name
+		imagePart = strings.Split(imagePart, ":")[0]
+		condition := strings.Trim(parts[1], " ")
+
+		// Check if the image name matches and condition is true
+		if imagePart == imageName && condition == "true" {
+			compute.DefaultLogger.Info(" * Image already exists", "image", imageName, "path", imageName)
+			return &Image{
+				ImageName: imageName,
+			}, nil
+		}
 	}
+	compute.DefaultLogger.Info(" * Image does not exist", "image", imageName, "path", imageName)
+
 
 	// otherwise, download a fresh copy
-	if _, err := process.Execute(compute.Environment.ApptainerBin, "pull", "--dir", imageDir, transport.Wrap(imageName)); err != nil {
+	if _, err := process.Execute(compute.Environment.PodmanBin, "pull", imageName); err != nil {
 		return nil, errors.Wrapf(err, "downloading has failed")
 	}
 
-	compute.DefaultLogger.Info(" * Download completed", "image", imageName, "path", img.Filepath)
+
+	img := &Image{
+		ImageName: imageName,	
+	}
+	compute.DefaultLogger.Info(" * Download completed", "image", imageName, "path", img.ImageName)
 
 	return img, nil
 }

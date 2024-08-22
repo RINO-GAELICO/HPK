@@ -60,3 +60,5 @@ func TestPull(t *testing.T) {
 	}
 
 }
+
+// Make a pull test for podman-hpc images

@@ -12,12 +12,13 @@ fi
 ################################
 
 # Set pod
-kubectl apply -f manifest.yaml -n "${TEST_NAMESPACE}"
+#kubectl apply -f manifest.yaml -n "${TEST_NAMESPACE}"
 
 # Wait for pods to become ready
-kubectl wait pods -n "${TEST_NAMESPACE}" -l app=resnet-server --for condition=Ready --timeout=90s
+#kubectl wait pods -n "${TEST_NAMESPACE}" -l app=resnet-server --for condition=Ready --timeout=390s
 
 # Verify deployment
-#export RESNET_IP=$(kubectl  get pods -l app=resnet-server -n "${TEST_NAMESPACE}" -o jsonpath="{.items[0].status.podIP}")
+export RESNET_IP=$(kubectl  get pods -l app=resnet-server -n "${TEST_NAMESPACE}" -o jsonpath="{.items[0].status.podIP}")
+echo $RESNET_IP
 
-#curl -v "http://${RESNET_IP}:8501/v1/models/resnet"
+curl -v "http://${RESNET_IP}:8501/v1/models/resnet"

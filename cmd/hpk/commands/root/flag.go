@@ -71,6 +71,7 @@ const (
 )
 
 func installFlags(flags *pflag.FlagSet, c *Opts) {
+
 	flags.StringVar(&c.KubeletAddress, "kubelet-addr", os.Getenv(EnvKubeletAddress), "which address to tell API server to use")
 	flags.Int32Var(&c.KubeletPort, "kubelet-port", 10250, "port to listen for incoming requests from API server")
 
@@ -82,9 +83,11 @@ func installFlags(flags *pflag.FlagSet, c *Opts) {
 	flags.StringVar(&c.KubeNamespace, "namespace", corev1.NamespaceAll, "kubernetes namespace (default is 'all')")
 	flags.StringVar(&c.NodeName, "nodename", "hpk-kubelet", "kubernetes node name")
 
-	flags.StringVar(&c.DefaultHostEnvironment.ApptainerBin, "apptainer", "apptainer", "path to Apptainer bin")
+	flags.StringVar(&c.DefaultHostEnvironment.PodmanBin, "podman", "podman-hpc", "path to Podman bin")
 	flags.StringVar(&c.DefaultHostEnvironment.ContainerRegistry, "registry", "docker://", "container registry")
 	flags.StringVar(&c.DefaultHostEnvironment.WorkingDirectory, "working-dir", GetUserHomeDir(), "sets up the HPK's working directory")
+	// Set up config filepath for Slurm
+	// flags.StringVar(&c.DefaultHostEnvironment.SlurmConfigFilePath, "/config.json", , "sets up the HPK's working directory")
 
 	flags.BoolVar(&c.DefaultHostEnvironment.EnableCgroupV2, "enable-cgroupv2", false, "Enable support for cgroupv2.")
 	flags.DurationVar(&c.FSPollingInterval, "poll", 5*time.Second, "if greater than 0, it will use a poll based approach to watch for file system changes")

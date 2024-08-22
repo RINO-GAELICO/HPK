@@ -25,7 +25,7 @@ import (
 type HostEnvironment struct {
 	KubeMasterHost    string
 	ContainerRegistry string
-	ApptainerBin      string
+	PodmanBin      string
 
 	EnableCgroupV2 bool
 

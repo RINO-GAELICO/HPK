@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# this plugin prints the words "hello world"
+echo "hello world"

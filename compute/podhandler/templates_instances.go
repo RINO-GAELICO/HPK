@@ -21,7 +21,6 @@ import (
 	"github.com/carv-ics-forth/hpk/compute"
 	"k8s.io/apimachinery/pkg/types"
 )
-
 const SbatchScriptTemplate = `#!/bin/bash
 #SBATCH --job-name={{.Pod.Name}}
 #SBATCH --output={{.VirtualEnv.StdoutPath}}
@@ -41,10 +40,8 @@ const SbatchScriptTemplate = `#!/bin/bash
 {{- if .Options.CustomFlags}}
 {{.Options.CustomFlags}}
 {{end}}
-
-
-export apptainer={{.HostEnv.ApptainerBin}}
-echo "Using ApptainerBin: ${apptainer}"
+export apptainer={{.HostEnv.PodmanBin}}
+echo "Using PodmanBin: ${apptainer}"
 
 #### BEGIN SECTION: VirtualEnvironment Builder ####
 # Description

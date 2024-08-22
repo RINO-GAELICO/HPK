@@ -12,4 +12,10 @@ fi
 kubectl delete -f manifest.yaml -n "${TEST_NAMESPACE}"
 
 # Remove namespace
-kubectl delete namespace "${TEST_NAMESPACE}"
+kubectl delete namespace "${TEST_NAMESPACE}" &
+
+sleep 5
+
+kubectl get namespace "${TEST_NAMESPACE}" -o json \
+  | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \
+  | kubectl replace --raw /api/v1/namespaces/${TEST_NAMESPACE}/finalize -f -

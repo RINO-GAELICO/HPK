@@ -118,7 +118,7 @@ func TestConstructorSyntax(t *testing.T) {
 			name: "noenv",
 			fields: PodHandler.JobFields{
 				HostEnv: compute.HostEnvironment{
-					ApptainerBin:      "apptainer",
+					PodmanBin:      "podman-hpc",
 					KubeDNS:           "6.6.6.6",
 					ContainerRegistry: "none",
 				},
@@ -242,3 +242,4 @@ func TestConstructorSyntax(t *testing.T) {
 		// os.Remove(f.Name())
 	}
 }
+

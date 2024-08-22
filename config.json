@@ -1,0 +1,4 @@
+{
+    "cpu": "--constraint=cpu --account=m3792",
+    "gpu": "--constraint=gpu --account=m3792"
+}

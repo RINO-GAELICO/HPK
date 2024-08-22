@@ -11,10 +11,13 @@ spec:
     metadata:
       labels:
         app: resnet-server
+      annotations:
+          slurm.hpk.io/type: "cpu"
+          slurm.hpk.io/flags: "--nodes=1 --time=15 --ntasks-per-node=1 -C gpu --exclusive --account=m3792 --qos=debug"
     spec:
       containers:
         - name: resnet-container
-          image: gcr.io/tensorflow-serving/resnet
+          image: tensorflow/serving:latest-gpu
           ports:
             - containerPort: 8500
             - containerPort: 8501
