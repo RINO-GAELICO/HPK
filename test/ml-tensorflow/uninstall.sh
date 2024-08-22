@@ -8,6 +8,7 @@ if [[ -z "${TEST_NAMESPACE}" ]]; then
 fi
 ################################
 
+
 # Remove pod
 kubectl delete -f manifest.yaml -n "${TEST_NAMESPACE}"
 

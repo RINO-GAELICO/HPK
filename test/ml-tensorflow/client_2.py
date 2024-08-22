@@ -54,7 +54,7 @@ def main():
     # Send few requests to warm-up the model.
     for _ in range(warm_up_num_requests):
         response = requests.post(SERVER_URL, data=predict_request)
-        print("Full Response JSON:", response.json())
+#        print("Full Response JSON:", response.json())
         response.raise_for_status()
 
     # Send few actual requests and report average latency.
@@ -68,8 +68,8 @@ def main():
         for _ in range(NUMBER_OF_REQUESTS):
             response = requests.post(SERVER_URL, data=predict_request)
             response.raise_for_status()
-            print("Full Response JSON:", response.json())
-            prediction = response.json()['predictions'][0]['probabilities']
+#            print("Full Response JSON:", response.json())
+            prediction = response.json()['predictions'][0]
             predictions.append(prediction)
         t_n = perf_counter()
         

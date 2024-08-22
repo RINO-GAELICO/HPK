@@ -105,7 +105,7 @@ run-podman:
 	podman-hpc run --name=k8 --net=host --env K8SFS_MOCK_KUBELET=0 \
 	-v $(HOME)/.k8sfs:/usr/local/etc \
 	-v $(HOME)/.k8sfs/log:/var/log \
-	localhost/k8s:1.0
+	ghcr.io/tylern4/tylern4/kubernetes-from-scratch:master 8444
 
 run-kubemaster: ## Run the Kubernetes Master
 	mkdir -p ${K8SFS_PATH}/log
