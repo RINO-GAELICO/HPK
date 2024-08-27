@@ -9,18 +9,11 @@ The Kubernetes control plane is now [a new container](https://github.com/tylern4
 
 # High-Performance Kubernetes
 
-High-Performance [Kubernetes](https://kubernetes.io/) (HPK), allows HPC users to run their own private "mini Clouds" on
-a typical HPC cluster. HPK uses [a single container](https://github.com/chazapis/kubernetes-from-scratch) to run the
+This modified version of High-Performance [Kubernetes](https://kubernetes.io/) (HPK), allows HPC users to run their own private "mini Clouds" on
+a typical HPC cluster, which uses [a single container](https://github.com/tylern4/kubernetes-from-scratch) to run the
 Kubernetes control plane and a [Virtual Kubelet](https://github.com/virtual-kubelet/virtual-kubelet) Provider
 implementation to translate container lifecycle management commands from Kubernetes-native
-to [Slurm](https://slurm.schedmd.com/)/[Apptainer](https://github.com/apptainer/apptainer).
-
-To allow users to run HPK, the HPC environment should have Apptainer configured so that:
-
-* It allows users to run containers with `--fakeroot`.
-* It uses a CNI plug-in that hands over private IPs to containers, which are routable across cluster hosts (we
-  use [flannel](https://github.com/flannel-io/flannel) and
-  the [flannel CNI plug-in](https://github.com/flannel-io/cni-plugin)).
+to [Slurm](https://slurm.schedmd.com/)/[Podman-hpc](https://github.com/NERSC/podman-hpc).
 
 In contrast to a typical Kubernetes installation at the Cloud:
 
@@ -48,7 +41,7 @@ Then you need to start the Kubernetes Master and `hpk-kubelet` seperately.
 To run the Kubernetes Master:
 
 ```bash
-make run-kubemaster
+make run-podman
 ```
 
 Once the master is up and running, you can start the `hpk-kubelet`:
