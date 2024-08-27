@@ -1,3 +1,12 @@
+# High-Performance Kubernetes for NERSC
+
+This is a fork from [CARV-ICS-FORTH/HPK](https://github.com/CARV-ICS-FORTH/HPK). The repo has been adapted to run with podman-hpc and Slurm, which are in use at NERSC.
+
+The command to install and run are the same except for `make run-kubemaster` which is being substituted by `make run-podman`.
+
+The Kubernetes control plane is now [a new container](https://github.com/tylern4/kubernetes-from-scratch) adapted from the [original](https://github.com/chazapis/kubernetes-from-scratch).
+
+
 # High-Performance Kubernetes
 
 High-Performance [Kubernetes](https://kubernetes.io/) (HPK), allows HPC users to run their own private "mini Clouds" on
