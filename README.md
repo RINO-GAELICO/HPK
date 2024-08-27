@@ -2,7 +2,7 @@
 
 This is a fork from [CARV-ICS-FORTH/HPK](https://github.com/CARV-ICS-FORTH/HPK). The repo has been adapted to run with podman-hpc and Slurm, which are in use at NERSC.
 
-The command to install and run are the same except for `make run-kubemaster` which is being substituted by `make run-podman`.
+The commands to install and run remain the same except for `make run-kubemaster` which has been replaced by `make run-podman`.
 
 The Kubernetes control plane is now [a new container](https://github.com/tylern4/kubernetes-from-scratch) adapted from the [original](https://github.com/chazapis/kubernetes-from-scratch).
 
