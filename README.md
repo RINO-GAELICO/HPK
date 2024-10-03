@@ -64,10 +64,3 @@ make run-kubemaster
 
 The above command will set CoreDNS to forward requests for external names to your DNS server.
 
-
-## Acknowledgements
-
-We thankfully acknowledge the support of the European Commission and the Greek General Secretariat for Research and
-Innovation under the EuroHPC Programme through projects EUPEX (GA-101033975) and DEEP-SEA (GA-955606). National
-contributions from the involved state members (including the Greek General Secretariat for Research and Innovation)
-match the EuroHPC funding.
