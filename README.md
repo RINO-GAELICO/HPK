@@ -28,9 +28,7 @@ HPK is a continuation of the [KNoC](https://github.com/CARV-ICS-FORTH/knoc) proj
 
 ## Trying it out
 
-First you need to configure Apptainer for HPK. The [install-environment.sh](test/install-environment.sh) script showcases how we implement the requirements in a single node for testing.
-
-Once setup, compile the `hpk-kubelet` using `make`.
+Compile the `hpk-kubelet` using `make`.
 
 ```bash
 make build
